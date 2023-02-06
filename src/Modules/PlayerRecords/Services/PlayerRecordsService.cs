@@ -32,28 +32,7 @@ public class PlayerRecordsService : IPlayerRecordsService
 
     public async Task<IMap> GetOrAddCurrentMapAsync()
     {
-        var currentMap = await _server.Remote.GetCurrentMapInfoAsync();
-        var map = await _maps.GetMapByUidAsync(currentMap.UId);
-        
-        if (map == null)
-        {
-            var mapAuthor = await _players.GetOrCreatePlayerAsync(PlayerUtils.ConvertLoginToAccountId(currentMap.Author));
-
-            var mapMeta = new MapMetadata
-            {
-                MapUid = currentMap.UId,
-                MapName = currentMap.Name,
-                AuthorId = mapAuthor.AccountId,
-                AuthorName = mapAuthor.NickName,
-                ExternalId = currentMap.UId,
-                ExternalVersion = null,
-                ExternalMapProvider = null
-            };
-
-            map = await _mapsRepo.AddMapAsync(mapMeta, mapAuthor, currentMap.FileName);
-        }
-
-        return map;
+        return await _maps.GetCurrentMapAsync();
     }
 
     public async Task<IPlayerRecord?> GetPlayerRecordAsync(IPlayer player, IMap map)

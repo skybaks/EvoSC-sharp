@@ -2,6 +2,7 @@
 using EvoSC.Common.Config.Models;
 using EvoSC.Common.Database.Repository.Maps;
 using EvoSC.Common.Interfaces;
+using EvoSC.Common.Interfaces.Database.Repository;
 using EvoSC.Common.Interfaces.Models;
 using EvoSC.Common.Interfaces.Services;
 using EvoSC.Common.Models.Maps;
@@ -104,6 +105,32 @@ public class MapService : IMapService
     public async Task RemoveMapAsync(long mapId)
     {
         await _mapRepository.RemoveMapAsync(mapId);
+    }
+
+    public async Task<IMap> GetCurrentMapAsync()
+    {
+        var currentMap = await _serverClient.Remote.GetCurrentMapInfoAsync();
+        var map = await GetMapByUidAsync(currentMap.UId);
+
+        if (map == null)
+        {
+            var mapAuthor = await _playerService.GetOrCreatePlayerAsync(PlayerUtils.ConvertLoginToAccountId(currentMap.Author));
+
+            var mapMeta = new MapMetadata
+            {
+                MapUid = currentMap.UId,
+                MapName = currentMap.Name,
+                AuthorId = mapAuthor.AccountId,
+                AuthorName = mapAuthor.NickName,
+                ExternalId = currentMap.UId,
+                ExternalVersion = null,
+                ExternalMapProvider = null,
+            };
+
+            map = await _mapRepository.AddMapAsync(mapMeta, mapAuthor, currentMap.FileName);
+        }
+
+        return map;
     }
 
     private static bool MapVersionExistsInDb(IMap map, MapMetadata mapMetadata)

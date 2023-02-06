@@ -42,4 +42,11 @@ public interface IMapService
     /// <param name="mapId">The maps ID in the database.</param>
     /// <returns></returns>
     public Task RemoveMapAsync(long mapId);
+
+    /// <summary>
+    /// Gets the map which is currently being played. Will also add the current map to the database
+    /// if it does not already exist.
+    /// </summary>
+    /// <returns></returns>
+    public Task<IMap> GetCurrentMapAsync();
 }
